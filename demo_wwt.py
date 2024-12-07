@@ -91,12 +91,12 @@ async def read_network_for_event(eventid: str, dt: str):
 async def leader_choose(eventdesc: str):
     # 尝试读取Excel文件
     try:
-        # with open('.//9_11_wwt/leader_info/leader_info.csv', 'rb') as f:
+        # with open('./9_11_wwt/leader_info/leader_info.csv', 'rb') as f:
         #     result = chardet.detect(f.read())
         #     encoding = result['encoding']
         # # 使用pandas读取Excel文件
-        # df = pd.read_csv('.//9_11_wwt/leader_info/leader_info.csv',  encoding=encoding)
-        df = pd.read_excel('.//9_11_wwt/leader_info/leader_info1.xlsx')
+        # df = pd.read_csv('./9_11_wwt/leader_info/leader_info.csv',  encoding=encoding)
+        df = pd.read_excel('./9_11_wwt/leader_info/leader_info1.xlsx')
         
         # 检查所需的列是否存在
         required_columns = ['name', 'uid','favourites_count', 'followers_count', 'listed_count', 'content', 'replycount', 'retweetcount', 'favoritecount','createdb','avatar']
@@ -143,11 +143,11 @@ async def leader_basic_info(leader_id:str, event_id: str):
     - 返回意见领袖姓名，性别，粉丝数、关注数、作品数、点赞量、转发量、评论量、头像。
     """
     try:
-        # with open('.//9_11_wwt/leader_info/leader_info.csv', 'rb') as f:
+        # with open('./9_11_wwt/leader_info/leader_info.csv', 'rb') as f:
         #     result = chardet.detect(f.read())
         #     encoding = result['encoding']
         # # 使用pandas读取Excel文件
-        # df = pd.read_csv('.//9_11_wwt/leader_info/leader_info.csv',  encoding=encoding)
+        # df = pd.read_csv('./9_11_wwt/leader_info/leader_info.csv',  encoding=encoding)
         df = pd.read_csv('./9_11_wwt/leader_info/leader_info1.csv')
         
         # 检查所需的列是否存在
@@ -210,7 +210,7 @@ async def tip_point(time:str, event_id: str):
         print(f"Time limit: {time_limit}")
         
         # 使用pandas读取Excel文件
-        df = pd.read_csv('.//9_11_wwt/comment/comment.csv')
+        df = pd.read_csv('./9_11_wwt/comment/comment.csv')
         print(f"DataFrame loaded with {len(df)} rows")
         
         # 确保'createdb'列是datetime类型
@@ -277,10 +277,10 @@ async def fan_attitude(time:str, event_id: str, leader_id: str):
         time_limit = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
 
         # Read the Excel file
-        # df = pd.read_csv('.//9_11_wwt/leader_fan/17980523.csv')
+        # df = pd.read_csv('./9_11_wwt/leader_fan/17980523.csv')
 
         # 根据 leader_id 构造文件路径
-        file_path = f'.//9_11_wwt/leader_fan/{leader_id}.csv'
+        file_path = f'./9_11_wwt/leader_fan/{leader_id}.csv'
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File for leader_id {leader_id} not found.")
         df = pd.read_csv(file_path)
@@ -334,8 +334,8 @@ async def leader_impact_index(time: str, leader_id: str, event_id: str):
         print(time_limit)
         # 使用pandas读取Excel文件
 
-        # df = pd.read_csv('.//9_11_wwt/leader_influ/17980523.csv')
-        file_path = f'.//9_11_wwt/leader_influ/{leader_id}.csv'
+        # df = pd.read_csv('./9_11_wwt/leader_influ/17980523.csv')
+        file_path = f'./9_11_wwt/leader_influ/{leader_id}.csv'
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File for leader_id {leader_id} not found.")
         df = pd.read_csv(file_path)
@@ -390,8 +390,8 @@ async def leader_compare(leader_id: str, time: str, event_id: str):
         print(time_limit)
 
         # 使用pandas读取Excel文件
-        # df = pd.read_csv('.//9_11_wwt/leader_influ/17980523.csv')
-        file_path = f'.//9_11_wwt/leader_influ/{leader_id}.csv'
+        # df = pd.read_csv('./9_11_wwt/leader_influ/17980523.csv')
+        file_path = f'./9_11_wwt/leader_influ/{leader_id}.csv'
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File for leader_id {leader_id} not found.")
         df = pd.read_csv(file_path)
@@ -439,8 +439,8 @@ async def leader_event(time: str, event_id: str, leader_id: str):
     - 返回leader的相关推文数据:用户名, 用户id, 推文内容, 评论数, 转发数, 点赞数, 图片或视频, 发布时间
     - 可实现leader_id：17980523，44196397，91583544，321954654，1319287761048723458
      """
-    # df = pd.read_csv('.//9_11_wwt/leader_influ/17980523.csv')
-    file_path = f'.//9_11_wwt/leader_fan/{leader_id}.csv'
+    # df = pd.read_csv('./9_11_wwt/leader_influ/17980523.csv')
+    file_path = f'./9_11_wwt/leader_fan/{leader_id}.csv'
     if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File for leader_id {leader_id} not found.")
     df = pd.read_csv(file_path)
@@ -495,8 +495,8 @@ async def leader_event_count(time: str, event_id: str, leader_id: str):
         time_limit = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
         # time_limit = datetime.strptime(time, '%Y-%m-%d')
         # 使用pandas读取Excel文件
-        # df = pd.read_csv('.//9_11_wwt/leader_influ/17980523.csv')
-        file_path = f'.//9_11_wwt/leader_influ/{leader_id}.csv'
+        # df = pd.read_csv('./9_11_wwt/leader_influ/17980523.csv')
+        file_path = f'./9_11_wwt/leader_influ/{leader_id}.csv'
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File for leader_id {leader_id} not found.")
         df = pd.read_csv(file_path)
@@ -549,8 +549,8 @@ async def leader_impact_predict(time: str, event_id: str, leader_id: str):
         time_limit = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
         # time_limit = datetime.strptime(time, '%Y-%m-%d')
         # 使用pandas读取Excel文件
-        # df = pd.read_csv('.//9_11_wwt/leader_influ/17980523.csv')
-        file_path = f'.//9_11_wwt/leader_influ/{leader_id}.csv'
+        # df = pd.read_csv('./9_11_wwt/leader_influ/17980523.csv')
+        file_path = f'./9_11_wwt/leader_influ/{leader_id}.csv'
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail=f"File for leader_id {leader_id} not found.")
         df = pd.read_csv(file_path)
@@ -1595,7 +1595,7 @@ async def agent_list( event_id: str):
     - event_id: event的id
     - 返回agent列表，包含用户头像、昵称、ID、话题内容、粉丝数、点赞量、转发量
     """
-    df = pd.read_excel('.//test_influence.xlsx')
+    df = pd.read_excel('./test_influence.xlsx')
     
     df = df.rename(columns={
         'name': 'user_name',
@@ -1995,7 +1995,7 @@ async def UserAttributeStatistics(eventdesc: str):
     输入参数：eventdesc: 事件描述
     返回值：一个列表，列表中每个元素是一个字典，字典的键是用户属性，值是对应的支持中立反对意见分布
     """
-    result = pd.read_excel('.//8_10_mwb/attributes_distribution.xlsx')
+    result = pd.read_excel('./8_10_mwb/attributes_distribution.xlsx')
     
     # 将每一行内容转换为字典格式,并将所有字典组成一个列表
     output = tuple(result.to_dict(orient='records'))
@@ -2011,7 +2011,7 @@ async def OpinionLeaderInfluence(eventdesc: str):
     返回值：一个列表，列表中每个元素是一个字典。name：bob，time1：350；name：bob，time2：300；
     """
     try:
-        result = pd.read_excel('.//8_10_mwb/influence_data.xlsx')
+        result = pd.read_excel('./8_10_mwb/influence_data.xlsx')
         if result.empty:
             raise HTTPException(status_code=400, detail="Excel file is empty")
         if result.shape[1] < 2:
@@ -2043,7 +2043,7 @@ async def WordCloudAnalysis(eventdesc: str,time_interval:str):
     输入参数：eventdesc: 事件描述，time_interval: 时间区间
     返回值：一个列表，列表中每个元素是一个字典。word：中国，frequency：100；word：美国，frequency：80；
     """
-    result = pd.read_excel('.//8_10_mwb/word_cloud.xlsx')
+    result = pd.read_excel('./8_10_mwb/word_cloud.xlsx')
     
     output = tuple(result.to_dict(orient='records'))
     
@@ -2056,7 +2056,7 @@ async def UserAttitudeDynamics(eventdesc: str,time_scale:str):
     输入参数：eventdesc: 事件描述，time_scale: 时间尺度
     返回值：一个列表，列表中每个元素是一个字典。time：2022-01-01，support：100，neutral：80，oppose：20；
     """
-    result = pd.read_excel('.//8_10_mwb/attitude_data.xlsx')
+    result = pd.read_excel('./8_10_mwb/attitude_data.xlsx')
 
     output = tuple(result.to_dict(orient='records'))
 
@@ -2078,7 +2078,7 @@ async def RealtimeData(eventdesc: str, time: str):
   "Heat of the Subject": "Warm"
    }
     """
-    Realtime_data = pd.read_excel('.//8_10_mwb/Realtime_data.xlsx')
+    Realtime_data = pd.read_excel('./8_10_mwb/Realtime_data.xlsx')
     
     # 将时间列转换为datetime格式
     Realtime_data.iloc[:, 0] = pd.to_datetime(Realtime_data.iloc[:, 0])
@@ -2114,7 +2114,7 @@ async def GeographicalAttitudes(eventdesc: str,country:str,time:str):
   }
     ]
     """
-    geo_data = pd.read_excel('.//8_10_mwb/geographical_attitudes.xlsx')    
+    geo_data = pd.read_excel('./8_10_mwb/geographical_attitudes.xlsx')    
     # 根据 country 参数查找对应的列
     if country == "China":
         country_column = "China"
@@ -2145,7 +2145,7 @@ async def ForwardingTrends(eventdesc: str):
     输入：事件描述（eventdesc）
     返回值：一个列表，列表中每个元素是一个字典。time：2022-01-01，forwarding：100；
     """
-    result = pd.read_excel('.//8_10_mwb/Forwarding_data.xlsx')
+    result = pd.read_excel('./8_10_mwb/Forwarding_data.xlsx')
     
     output = tuple(result.to_dict(orient='records'))
     
@@ -2158,7 +2158,7 @@ async def KeyUsers(eventdesc: str,ID:str):
     输入：事件描述（eventdesc），ID（str）
     返回值：一个字典，包含姓名，头像，粉丝，转发内容等信息
     """
-    key_users_data = pd.read_excel('.//8_10_mwb/KeyUsers.xlsx')
+    key_users_data = pd.read_excel('./8_10_mwb/KeyUsers.xlsx')
 
     key_users_data['ID'] = key_users_data['ID'].astype(str).str.strip()
     ID = ID.strip()
@@ -2179,7 +2179,7 @@ async def CriticalUserPaths(eventdesc: str):
     输入：事件描述（eventdesc）
     返回值：一个字典，有nodes和edges两个键，分别对应节点和边的信息；节点信息包括id，name，avatar等，边信息包括源节点和目标节点
     """
-    path_data = pd.read_excel('.//8_10_mwb/CriticalUserPaths_data.xlsx')
+    path_data = pd.read_excel('./8_10_mwb/CriticalUserPaths_data.xlsx')
     
     G = nx.DiGraph()
     
