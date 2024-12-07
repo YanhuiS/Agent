@@ -4,7 +4,7 @@ def read_list():
     # 尝试读取Excel文件
     try:
         # 使用pandas读取Excel文件
-        df = pd.read_excel('/root/autodl-tmp/syh/test_influence.xlsx')
+        df = pd.read_excel('./test_influence.xlsx')
         
         # 检查所需的列是否存在
         required_columns = ['name', 'uid','favourites_count', 'followers_count',  'statuses_count','listed_count', 'content', 'replycount', 'retweetcount', 'favoritecount','gender','media','createdb','gender','avatar']
