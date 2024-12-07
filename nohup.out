@@ -77,3 +77,36 @@ INFO:     172.28.12.75:0 - "GET /LeaderEvent/2022-10-05%2010%3A00%3A00/1/1 HTTP/
 INFO:     172.28.12.75:0 - "GET /LeaderEvent/2022-10-05%2010%3A00%3A00/1/44196397 HTTP/1.1" 200 OK
 INFO:     172.28.12.75:0 - "GET /LeaderEvent/2024-11-25%2010%3A00%3A00/1/44196397 HTTP/1.1" 200 OK
 INFO:     172.28.12.75:0 - "GET /LeaderEvent/2024-12-01%2010%3A00%3A00/1/44196397 HTTP/1.1" 200 OK
+INFO:     Will watch for changes in these directories: ['/root/autodl-tmp/syh']
+INFO:     Uvicorn running on http://127.0.0.1:6006 (Press CTRL+C to quit)
+INFO:     Started reloader process [33854] using StatReload
+INFO:     Started server process [33857]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Columns in the DataFrame: Index(['author/fastFollowersCount', 'favourites_count', 'followers_count',
+       'author/following', 'name', 'uid', 'listed_count', 'author/userName',
+       'content', 'createdb', 'favoritecount', 'viewCount', 'retweetcount',
+       'replycount', 'quoteCount', 'bookmarkCount', 'media', 'place', 'avatar',
+       'Pi', 'Ei', 'Ni', 'PZ', 'DG', 'NCI', 'info'],
+      dtype='object')
+Filtered rows: 27
+Filtered rows: 27
+The column 'infu' is missing in the file.
+INFO:     172.28.12.75:0 - "GET /LeaderImpactPredict/2024-12-7%2010%3A00%3A00/1/44196397 HTTP/1.1" 200 OK
+Columns in the DataFrame: Index(['author/fastFollowersCount', 'favourites_count', 'followers_count',
+       'author/following', 'name', 'uid', 'listed_count', 'author/userName',
+       'content', 'createdb', 'favoritecount', 'viewCount', 'retweetcount',
+       'replycount', 'quoteCount', 'bookmarkCount', 'media', 'place', 'avatar',
+       'Pi', 'Ei', 'Ni', 'PZ', 'DG', 'NCI', 'infu'],
+      dtype='object')
+Filtered rows: 650
+Filtered rows: 650
+INFO:     172.28.12.75:0 - "GET /LeaderImpactPredict/2024-12-7%2010%3A00%3A00/1/17980523 HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'demo.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [33857]
+INFO:     Started server process [36106]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

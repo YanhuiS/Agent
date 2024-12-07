@@ -428,7 +428,7 @@ async def leader_compare(leader_id: str, time: str, event_id: str):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
-    
+
     # result['time'] = result['time'].dt.strftime('%Y-%m-%d %H:%M:%S')
     # result['date'] = result['date'].dt.strftime('%Y-%m-%d')
     result1 = tuple(result.to_dict(orient='records'))
