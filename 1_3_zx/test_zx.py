@@ -9,7 +9,8 @@ import re
 
 
 app = FastAPI()
-# 待修改
+    
+# git push测试
 @app.get("/NetworkOverview") # 生成数据
 async def read_network_for_overview():
     """
@@ -56,20 +57,30 @@ async def read_topic_for_count():
     cnt_1 = len(df[df['topic']=='Russia Interference'])
     cnt_2 = len(df[df['topic']=='Trump Election'])
     cnt_3 = len(df[df['topic']=='Xinjiang Cotton'])
-    result = { 
-        "通俄门":cnt_1, 
-        "特朗普选举": cnt_2,
-        "新疆棉事件": cnt_3
+    result = [
+        {
+            "name": "通俄门",
+            "value": cnt_1
+        },
+        {
+            "name": "特朗普选举",
+            "value": cnt_2
+        },
+        {
+            "name": "新疆棉事件",
+            "value": cnt_3
         }
+    ]
     return result
 
-@app.get("/AttiPercentage") # 推特数据
+@app.get("/AttiPercentage")
 async def read_atti_for_draw():
     """"
-    Retrieve the distribution of all tweets' attitudes.
+    界面一的情感占比，返回正面、负面和中性信息的百分比。
 
-    - No input parameters
-    - Return a dict object, which contains the percentage of positive, negative and neutral tweets of all topics.
+    - 没有输入参数。 
+    - 返回一个字典对象，键为情感名，值为所占百分比。
+    - 示例数据：{"positive": 0.30, "negative": 0.30, "neutral":0.40 }
     
     """
     df = pd.read_csv("TwitterTopic_data.csv")
@@ -83,14 +94,14 @@ async def read_atti_for_draw():
       ]
     return data
 
-@app.get("/WeekTrend") # 推特数据
+@app.get("/WeekTrend")
 async def read_week_trend(request: Request):
     """
     Retrieve the attitude scores of selected topics in the past week.
     
     - **request: Request**: User selected topic. 
         Note that the topic must appear in "@app.get("/TopicCount")". 
-        example of the url: ../WeekTrend/?event=Russia Interference&event=Trump Election&event=Xinjiang Cotton
+        example of the url: ../WeekTrend/?event=选民登记问题&event=邮寄投票争议
     - Return a dict object, which contains the weekly date list and the attitude scores of selected topics.
 
     """
@@ -107,7 +118,13 @@ async def read_week_trend(request: Request):
     df = pd.read_csv(csv_path)
     # 随机生成事件一周的态度值列表
     for event in event_list:
-        df_tmp = df[df['topic'] == event]
+        if event == "通俄门":
+            topic = 'Russia Interference'
+        elif event == "特朗普选举":
+            topic = 'Trump Election'
+        elif event == "新疆棉事件":
+            topic = 'Xinjiang Cotton'
+        df_tmp = df[df['topic'] == topic]
         if df_tmp.empty:
             weektrend.append({
                 'name': event,
@@ -139,6 +156,7 @@ async def read_week_trend(request: Request):
             })
     result = {"time": date_list, "trend": weektrend}
     return result
+
 
 @app.get("/WeekAnalysis") # 推特数据
 async def read_week_analysis():
@@ -176,7 +194,7 @@ async def read_week_analysis():
     result = {"this week": atti_list1[::-1], "last week": atti_list2[::-1]}
     return result
 
-# 以下函数用于界面1的“全局统计信息”
+# 以下函数用于界面1的“全局统计信息”，暂时返回随机数, 后期需要根据数据库优化,
 def cal_total(df, end_time, start_time):
     result = len(df[ (df['createdAt'] >= start_time) & (df['createdAt'] <= end_time) ])
     return result
@@ -300,8 +318,8 @@ async def read_Statistics(observe_time: str):
         "average":cal_average(df, end_time, start_time), 
         "bias": cal_bias(df, end_time, start_time), 
         "var": cal_var(df, end_time, start_time), 
-        "neg total": cal_NegTotal(df, end_time, start_time), 
-        "non-neg total": cal_NNegTotal(df, end_time, start_time), 
+        "neg_total": cal_NegTotal(df, end_time, start_time), 
+        "non_neg_total": cal_NNegTotal(df, end_time, start_time), 
         "leader_num": cal_leader_num(df, end_time, start_time), 
         "fluc": cal_fluc(df, deltatime, end_time, start_time), 
         "spread_rate": cal_spread_rate(df, deltatime, end_time, start_time), 
@@ -384,7 +402,6 @@ async def read_RetrieveUser(username: str):
     except Exception:
         return {"state": "No such user"}
     
-
 @app.get("/UserTopology/{userID}") # 推特数据
 async def read_UserTopology(userID: str):
     """
@@ -413,44 +430,6 @@ async def read_UserTopology(userID: str):
             layer2[fan] = fansfansID
         result["layer2"] = layer2
     return result
-    
-# @app.post("/UserLoad")
-# async def read_UserLoad(request: Request):
-#     try:
-#         body = await request.json()
-#         data = []
-#         for i in range(len(body)):
-#             data_dict = {"userID": body[i]["userID"], "name": body[i]["name"], "fans_num": body[i]["fans_num"], "gender":"男","figure":"普通用户","birth":"2000-01-01","traits":"乐观、耐心、敢于冒险","hobbies":"唱、跳、rap、篮球","memory": {"type":"阅读","content":"欢迎来到微博！随时随地，发现新鲜事~"}}
-#             data.append(data_dict)
-#         data = pd.DataFrame.from_dict(data)
-#         # 暂时写入UserLoad.csv文件中，后续可以写入数据库
-#         data.to_csv("UserLoad.csv", mode="w", header=True, index=False)
-#         return JSONResponse(content={"state":True})
-#     except Exception as e:
-#         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
-
-# @app.post("/UserAdd")
-# async def read_UserAdd(request:Request):
-#     try:
-#         body = await request.json()
-#         df = pd.read_csv("UserLoad.csv")
-#         body = [{"userID": str(len(df)), "name": body["name"], "fans_num": body["fans_num"], "gender":"男","figure":"普通用户","birth":"2000-01-01","traits":"乐观、耐心、敢于冒险","hobbies":"唱、跳、rap、篮球","memory": {"type":"阅读","content":"欢迎来到微博！随时随地，发现新鲜事~"}}]
-#         data = pd.DataFrame(body)
-#         data.to_csv("UserLoad.csv", mode="a", header=False, index=False)
-#         return JSONResponse(content={"state":True,"id": str(len(df))})
-#     except Exception as e:
-#         return JSONResponse(content={"state":False, "error": str(e)}, status_code = 400)
-
-# @app.delete("/UserDelete/{userID}")
-# async def read_UserDelete(userID:str):
-#     try:
-#         df = pd.read_csv("UserLoad.csv")
-#         df["userID"] = df["userID"].astype(str)
-#         df = df[df["userID"] != userID]
-#         df.to_csv("UserLoad.csv", mode="w", header=True, index=False)
-#         return JSONResponse(content={"state":True})
-#     except Exception as e:
-#         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
 
 @app.get("/Userlist") # 生成数据
 async def read_Userlist():
@@ -564,3 +543,41 @@ async def read_PublicPost(userID: str, num: int):
         return post
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
+    
+# @app.post("/UserLoad")
+# async def read_UserLoad(request: Request):
+#     try:
+#         body = await request.json()
+#         data = []
+#         for i in range(len(body)):
+#             data_dict = {"userID": body[i]["userID"], "name": body[i]["name"], "fans_num": body[i]["fans_num"], "gender":"男","figure":"普通用户","birth":"2000-01-01","traits":"乐观、耐心、敢于冒险","hobbies":"唱、跳、rap、篮球","memory": {"type":"阅读","content":"欢迎来到微博！随时随地，发现新鲜事~"}}
+#             data.append(data_dict)
+#         data = pd.DataFrame.from_dict(data)
+#         # 暂时写入UserLoad.csv文件中，后续可以写入数据库
+#         data.to_csv("UserLoad.csv", mode="w", header=True, index=False)
+#         return JSONResponse(content={"state":True})
+#     except Exception as e:
+#         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
+
+# @app.post("/UserAdd")
+# async def read_UserAdd(request:Request):
+#     try:
+#         body = await request.json()
+#         df = pd.read_csv("UserLoad.csv")
+#         body = [{"userID": str(len(df)), "name": body["name"], "fans_num": body["fans_num"], "gender":"男","figure":"普通用户","birth":"2000-01-01","traits":"乐观、耐心、敢于冒险","hobbies":"唱、跳、rap、篮球","memory": {"type":"阅读","content":"欢迎来到微博！随时随地，发现新鲜事~"}}]
+#         data = pd.DataFrame(body)
+#         data.to_csv("UserLoad.csv", mode="a", header=False, index=False)
+#         return JSONResponse(content={"state":True,"id": str(len(df))})
+#     except Exception as e:
+#         return JSONResponse(content={"state":False, "error": str(e)}, status_code = 400)
+
+# @app.delete("/UserDelete/{userID}")
+# async def read_UserDelete(userID:str):
+#     try:
+#         df = pd.read_csv("UserLoad.csv")
+#         df["userID"] = df["userID"].astype(str)
+#         df = df[df["userID"] != userID]
+#         df.to_csv("UserLoad.csv", mode="w", header=True, index=False)
+#         return JSONResponse(content={"state":True})
+#     except Exception as e:
+#         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
