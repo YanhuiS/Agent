@@ -1689,9 +1689,18 @@ async def read_topic_for_count():
     cnt_2 = len(df[df['topic']=='Trump Election'])
     cnt_3 = len(df[df['topic']=='Xinjiang Cotton'])
     result = { 
-        "通俄门":cnt_1, 
-        "特朗普选举": cnt_2,
-        "新疆棉事件": cnt_3
+        {
+            "name": "通俄门",
+            "value": cnt_1
+        },
+        {
+            "name": "特朗普选举",
+            "value": cnt_2
+        },
+        {
+            "name": "新疆棉事件",
+            "value": cnt_3
+        }
         }
     return result
 
