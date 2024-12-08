@@ -101,7 +101,7 @@ async def read_week_trend(request: Request):
     
     - **request: Request**: User selected topic. 
         Note that the topic must appear in "@app.get("/TopicCount")". 
-        example of the url: ../WeekTrend/?event=选民登记问题&event=邮寄投票争议
+        example of the url: ../WeekTrend/?event=通俄门&event=特朗普选举
     - Return a dict object, which contains the weekly date list and the attitude scores of selected topics.
 
     """
@@ -533,6 +533,7 @@ async def read_PrivateChat(request: Request):
         pageSize = int(request.query_params.get("pageSize"))
         maxnum = 50 # 数据库中对话数据的最大条数
         maxpageNo = maxnum // pageSize # 最大页数
+        topic_list = request.query_params.getlist('topic')
         if pageNo > maxpageNo:
             return JSONResponse(content={"state":False, "error": "pageNo out of range"}, status_code=400)
         else:
@@ -540,12 +541,16 @@ async def read_PrivateChat(request: Request):
             json_path = os.path.join(currentdir, 'PrivateChat.json')
             with open(json_path,'r') as f:
                 data = json.load(f)
-                sample_data = random.sample(data, pageSize)
+                # sample_data = random.sample(data, pageSize)
                 flag = 1
                 while flag:
                     friendID = str(random.randint(0,1000))
                     if friendID != userID:
                         flag = 0
+                sample_data = []
+                for _ in range(pageSize):
+                    topic = random.choice(topic_list)
+                    sample_data.append(random.choice(data[topic]))                    
                 chat = [{"userID": userID,"chatID": str((pageNo-1)*pageSize+i+1), "friendID": friendID, "content": sample_data[i]} for i in range(pageSize)]
                 return chat
     except Exception as e:
