@@ -1688,7 +1688,7 @@ async def read_topic_for_count():
     cnt_1 = len(df[df['topic']=='Russia Interference'])
     cnt_2 = len(df[df['topic']=='Trump Election'])
     cnt_3 = len(df[df['topic']=='Xinjiang Cotton'])
-    result = { 
+    result = [
         {
             "name": "通俄门",
             "value": cnt_1
@@ -1701,7 +1701,7 @@ async def read_topic_for_count():
             "name": "新疆棉事件",
             "value": cnt_3
         }
-        }
+    ]
     return result
 
 @app.get("/AttiPercentage")
