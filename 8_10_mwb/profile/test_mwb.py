@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request,HTTPException
+from fastapi import FastAPI, Request,HTTPException, Query
 from fastapi.responses import JSONResponse
 import json
 import networkx as nx
@@ -25,7 +25,7 @@ async def UserAttributeStatistics(eventdesc: str):
     """
     try:
         # 读取CSV文件
-        result = pd.read_csv('/root/autodl-tmp/syh/8_10_mwb/profile/10000profile.csv')
+        result = pd.read_csv('./8_10_mwb/profile/1000profile.csv')
         
         # 初始化结果字典
         statistics = {}
@@ -77,15 +77,15 @@ async def UserAttributeStatistics(eventdesc: str):
         raise HTTPException(status_code=500, detail=f"Error processing data: {e}")
 
 
-@app.get("/OpinionLeaderInfluence/{eventdesc}")
-async def OpinionLeaderInfluence(eventdesc: str):
+@app.get("/OpinionLeaderInfluence")
+async def OpinionLeaderInfluence(eventdesc: str = Query(..., description="事件描述")):
     """
     功能：统计事件中的意见领袖对事件的影响力，伴随时间变化
     输入参数：eventdesc: 事件描述
     返回值：一个列表，列表中每个元素是一个字典。name：bob，time1：350；name：bob，time2：300；
     """
     try:
-        folder_path = '/root/autodl-tmp/syh/9_11_wwt/leader/'
+        folder_path = './9_11_wwt/leader/'
         if not os.path.exists(folder_path):
             raise HTTPException(status_code=404, detail="Folder not found")
         
@@ -145,7 +145,7 @@ async def WordCloudAnalysis(eventdesc: str, time_interval: str):
         # 遍历时间区间内的每一天
         current_date = start_date
         while current_date <= end_date:
-            file_path = f'/root/autodl-tmp/syh/8_10_mwb/2024/{current_date.strftime("%Y-%m-%d")}.json'
+            file_path = f'./8_10_mwb/2024/{current_date.strftime("%Y-%m-%d")}.json'
             if os.path.exists(file_path):
                 # 读取JSON文件
                 try:
@@ -186,7 +186,7 @@ async def UserAttitudeDynamics(eventdesc: str, time_scale: str):
     返回值：一个列表，列表中每个元素是一个字典。time：2022-01-01，support：100，neutral：80，oppose：20；
     """
     try:
-        folder_path = '/root/autodl-tmp/syh/8_10_mwb/2024'
+        folder_path = './8_10_mwb/2024'
         if not os.path.exists(folder_path):
             raise HTTPException(status_code=404, detail="Folder not found")
         
@@ -258,7 +258,7 @@ async def RealtimeData(eventdesc: str, time: str):
         date_str = input_time.strftime("%Y-%m-%d")
         
         # 读取时间名为该时间的文件
-        file_path = f'/root/autodl-tmp/syh/8_10_mwb/2024/{date_str}.json'
+        file_path = f'./8_10_mwb/2024/{date_str}.json'
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="File not found")
         
@@ -283,7 +283,7 @@ async def RealtimeData(eventdesc: str, time: str):
         
         # 计算用户留存率和每日新增用户
         previous_date_str = (input_time - timedelta(days=1)).strftime("%Y-%m-%d")
-        previous_file_path = f'/root/autodl-tmp/syh/8_10_mwb/2024/{previous_date_str}.json'
+        previous_file_path = f'./8_10_mwb/2024/{previous_date_str}.json'
         if os.path.exists(previous_file_path):
             with open(previous_file_path, 'r', encoding='utf-8') as file:
                 previous_data = json.load(file)
@@ -324,7 +324,7 @@ async def GeographicalAttitudes(eventdesc: str, country: str):
     返回值：一个列表，列表中每个元素是一个字典。
     """
     try:
-        folder_path = '/root/autodl-tmp/syh/8_10_mwb/2024'
+        folder_path = './8_10_mwb/2024'
         if not os.path.exists(folder_path):
             raise HTTPException(status_code=404, detail="Folder not found")
         
@@ -369,14 +369,14 @@ async def GeographicalAttitudes(eventdesc: str, country: str):
 
 
 
-@app.get("/ForwardingTrends/{eventdesc}")
-async def ForwardingTrends(eventdesc: str):
+@app.get("/ForwardingTrends")
+async def ForwardingTrends(eventdesc: str = Query(..., description="事件描述")):
     """
     功能：统计事件不同时间的转发量
     输入：事件描述（eventdesc）
     返回值：一个列表，列表中每个元素是一个字典。time：2022-01-01 00:00:00，total：100；
     """
-    folder_path = '/root/autodl-tmp/syh/8_10_mwb/2024'
+    folder_path = './8_10_mwb/2024'
     if not os.path.exists(folder_path):
         raise HTTPException(status_code=404, detail="Folder not found")
     
@@ -422,14 +422,17 @@ async def ForwardingTrends(eventdesc: str):
 
 
 
-@app.get("/KeyUsers/{eventdesc}/{ID}")
-async def KeyUsers(eventdesc: str, ID: str):
+@app.get("/KeyUsers")
+async def KeyUsers(
+    eventdesc: str = Query(..., description="事件描述"),
+    ID: str = Query(..., description="用户ID")
+):
     """
     功能：根据输入的事件描述和ID，返回该ID的姓名，头像，粉丝，转发内容等信息
     输入：事件描述（eventdesc），ID（str）
     返回值：一个字典，包含姓名，头像，粉丝，转发内容等信息
     """
-    folder_path = '/root/autodl-tmp/syh/8_10_mwb/2024'
+    folder_path = './8_10_mwb/2024'
     if not os.path.exists(folder_path):
         raise HTTPException(status_code=404, detail="Folder not found")
     
@@ -467,14 +470,14 @@ async def KeyUsers(eventdesc: str, ID: str):
 
 
 
-@app.get("/CriticalUserPaths/{eventdesc}")
-async def CriticalUserPaths(eventdesc: str):
+@app.get("/CriticalUserPaths")
+async def CriticalUserPaths(eventdesc: str = Query(..., description="事件描述")):
     """
     功能：根据输入的事件描述，返回该事件的相关关键用户传播路径
     输入：事件描述（eventdesc）
     返回值：一个字典，有nodes和links两个键，分别对应节点和边的信息；节点信息包括id，name，avatar等，边信息包括源节点和目标节点
     """
-    folder_path = '/root/autodl-tmp/syh/8_10_mwb/2024'
+    folder_path = './8_10_mwb/2024'
     if not os.path.exists(folder_path):
         raise HTTPException(status_code=404, detail="Folder not found")
     
