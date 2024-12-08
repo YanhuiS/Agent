@@ -572,6 +572,7 @@ async def read_PublicPost(request: Request):
         pageSize = int(request.query_params.get("pageSize"))
         maxnum = 50 # 数据库中对话数据的最大条数
         maxpageNo = maxnum // pageSize # 最大页数
+        topic_list = request.query_params.getlist('topic')
         if pageNo > maxpageNo:
             return JSONResponse(content={"state":False, "error": "pageNo out of range"}, status_code=400)
         else:
@@ -581,7 +582,7 @@ async def read_PublicPost(request: Request):
                 data = json.load(f)
                 sample_data = []
                 for _ in range(pageSize):
-                    topic = random.choice(["AI预言","巴西总统选举舞弊","新冠疫苗引发不孕","美国登月造假"])
+                    topic = random.choice(topic_list)
                     sample_data.append(random.choice(data[topic]))
             post = [{"userID": userID,"postID": str((pageNo-1)*pageSize+i+1), "content": sample_data[i]} for i in range(pageSize)]
             return post
