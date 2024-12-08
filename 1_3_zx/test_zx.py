@@ -22,13 +22,13 @@ async def read_network_for_overview():
     """
     # 读取csv文件，将用户类型、颜色列转换为列表
     current_dir = os.path.dirname(os.path.abspath(__file__)) #  获取当前脚本文件所在目录的上一级目录
-    csv_path = os.path.join(current_dir, "profile_1w.csv")
+    csv_path = os.path.join(current_dir, "profile_1000.csv")
     df = pd.read_csv(csv_path)
     id_list = df['id'].tolist()
     role_list = df['roles'].tolist()
     color_list = df['colors'].tolist()
     # 读取 JSON 数据，并将其转换为 Python 的字典处理
-    json_path = os.path.join(current_dir, "follower_1w.json")
+    json_path = os.path.join(current_dir, "follower_1000.json")
     with open(json_path, "r") as f:
         data = json.load(f)
         # 读取各用户粉丝，以及数量
@@ -385,13 +385,13 @@ async def read_RetrieveUser(username: str):
     - return a dict obj that contains username, user id and its neighbours id
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, "UserLoad.csv")
+    csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
     df = pd.read_csv(csv_path)
     # 获取用户名对应id
     try:
         id = df.loc[(df["name"]) == username, "id"]
         id = int(id.values[0])
-        json_path = os.path.join(current_dir, "follower_1w.json")
+        json_path = os.path.join(current_dir, "follower_1000.json")
         with open(json_path, 'r') as f:
             data = json.load(f)
             # 获取id对应邻居id
@@ -416,7 +416,7 @@ async def read_UserTopology(userID: str):
     result = {"userID": userID}
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # 读取 JSON 数据，并将其转换为 Python 的字典处理
-    json_path = os.path.join(current_dir, "follower_1w.json")
+    json_path = os.path.join(current_dir, "follower_1000.json")
     with open(json_path, "r") as f:
         data = json.load(f)
         fans = data[f"user_{userID}"]
@@ -443,13 +443,13 @@ async def read_Userlist():
         -"fansNum": fans number of the user
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, "UserLoad.csv")
+    csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
     df = pd.read_csv(csv_path)
     # 获取所有用户id及其名字
     ids = df["id"].tolist()
     names = df["name"].tolist()
     # 获取该用户的粉丝数
-    json_path = os.path.join(current_dir, "follower_1w.json")
+    json_path = os.path.join(current_dir, "follower_1000.json")
     with open(json_path, "r") as f:
         data = json.load(f)
         FansNums = [len(data[f"user_{id}"]) for id in ids]
@@ -465,7 +465,7 @@ async def read_UserInfo(userID: str):
     - return a dict object whose keys are: id,name,gender,status,traits,interest,birth,memory    
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, "UserLoad.csv")
+    csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
     df = pd.read_csv(csv_path)
     # 获取该用户的各个信息
     info = df.iloc[int(userID)].to_dict()
@@ -482,11 +482,11 @@ async def read_UserProfileSave(request: Request):
     data_change = {"userID":"0", "name": "JasmineTurtle" , "gender": "female", ...}
     response = requests.put(url_4, json=data_change)
 
-    - return state of "True" meaning the change has been saved in "UserLoad.csv"
+    - return state of "True" meaning the change has been saved in "UserLoad_1000.csv"
     """
     try:
         body = await request.json() 
-        df = pd.read_csv("UserLoad.csv")
+        df = pd.read_csv("UserLoad_1000.csv")
         # 以下修改指定行
         df["id"] = df["id"].astype(str)
         df.loc[df["id"] == body["userID"], "name"] = body["name"]
@@ -496,7 +496,7 @@ async def read_UserProfileSave(request: Request):
         df.loc[df["id"] == body["userID"], "interest"] = body["interest"]
         df.loc[df["id"] == body["userID"], "birth"] = body["birth"]
         df.loc[df["id"] == body["userID"], "memory"] = str(body["memory"])
-        df.to_csv("UserLoad.csv", mode="w", header=True, index=False)
+        df.to_csv("UserLoad_1000.csv", mode="w", header=True, index=False)
         return JSONResponse(content={"state":True})
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
