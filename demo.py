@@ -1645,17 +1645,6 @@ async def agent_list( event_id: str):
 
 ###############zhouxuan#############
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-import json
-from datetime import datetime, timedelta
-import random
-import pandas as pd
-import os
-import re
-
-
-app = FastAPI()
     
 # git push测试
 @app.get("/NetworkOverview") # 生成数据
