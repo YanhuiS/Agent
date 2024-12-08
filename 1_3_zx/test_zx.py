@@ -437,7 +437,7 @@ async def read_UserTopology(request: Request):
     return result
 
 @app.get("/Userlist") # 生成数据
-async def read_Userlist():
+async def read_Userlist(request: Request):
     """
     Read user list
     
@@ -447,19 +447,29 @@ async def read_Userlist():
         -"name": name of the user
         -"fansNum": fans number of the user
     """
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
-    df = pd.read_csv(csv_path)
-    # 获取所有用户id及其名字
-    ids = df["id"].tolist()
-    names = df["name"].tolist()
-    # 获取该用户的粉丝数
-    json_path = os.path.join(current_dir, "follower_1000.json")
-    with open(json_path, "r") as f:
-        data = json.load(f)
-        FansNums = [len(data[f"user_{id}"]) for id in ids]
-    result = [{"userID":ids[i], "name":names[i], "fansNum": FansNums[i]} for i in range(len(ids))]
-    return result
+    try:
+        pageNo = int(request.query_params.get("pageNo"))
+        pageSize = int(request.query_params.get("pageSize"))
+        maxnum = 1000 # 数据库中用户最大数量
+        maxpageNo = maxnum // pageSize # 最大页数
+        if pageNo > maxpageNo:
+            return JSONResponse(content={"state":False, "error": "pageNo out of range"}, status_code=400)
+        else:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
+            df = pd.read_csv(csv_path)
+            # 获取页面范围用户id及其名字
+            ids = df["id"].tolist()[(pageNo-1)*pageSize:pageNo*pageSize]
+            names = df["name"].tolist()[(pageNo-1)*pageSize:pageNo*pageSize]
+            # 获取该用户的粉丝数
+            json_path = os.path.join(current_dir, "follower_1000.json")
+            with open(json_path, "r") as f:
+                data = json.load(f)
+                FansNums = [len(data[f"user_{id}"]) for id in ids]
+            result = [{"userID":ids[i], "name":names[i], "fansNum": FansNums[i]} for i in range(len(ids))]
+            return result
+    except Exception as e:
+        return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
 
 @app.get("/UserInfo") # 生成数据
 async def read_UserInfo(request:Request):
@@ -518,14 +528,26 @@ async def read_PrivateChat(request: Request):
     """
     try:
         userID = request.query_params.get("userID")
-        num = int(request.query_params.get("num"))
-        currentdir = os.path.dirname(os.path.abspath(__file__))
-        json_path = os.path.join(currentdir, 'PrivateChat.json')
-        with open(json_path,'r') as f:
-            data = json.load(f)
-            sample_data = random.sample(data, num)
-        chat = [{"userID": userID,"chatID": str(i), "friendID": str(random.randint(1,20)), "content": sample_data[i]} for i in range(num)]
-        return chat
+        # num = int(request.query_params.get("num"))
+        pageNo = int(request.query_params.get("pageNo"))
+        pageSize = int(request.query_params.get("pageSize"))
+        maxnum = 50 # 数据库中对话数据的最大条数
+        maxpageNo = maxnum // pageSize # 最大页数
+        if pageNo > maxpageNo:
+            return JSONResponse(content={"state":False, "error": "pageNo out of range"}, status_code=400)
+        else:
+            currentdir = os.path.dirname(os.path.abspath(__file__))
+            json_path = os.path.join(currentdir, 'PrivateChat.json')
+            with open(json_path,'r') as f:
+                data = json.load(f)
+                sample_data = random.sample(data, pageSize)
+                flag = 1
+                while flag:
+                    friendID = str(random.randint(0,1000))
+                    if friendID != userID:
+                        flag = 0
+                chat = [{"userID": userID,"chatID": str((pageNo-1)*pageSize+i+1), "friendID": friendID, "content": sample_data[i]} for i in range(pageSize)]
+                return chat
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
     
@@ -540,17 +562,24 @@ async def read_PublicPost(request: Request):
     """
     try:
         userID = request.query_params.get("userID")
-        num = int(request.query_params.get("num"))
-        currentdir = os.path.dirname(os.path.abspath(__file__))
-        json_path = os.path.join(currentdir, 'PublicPost.json')
-        with open(json_path,'r') as f:
-            data = json.load(f)
-            sample_data = []
-            for _ in range(num):
-                topic = random.choice(["AI预言","巴西总统选举舞弊","新冠疫苗引发不孕","美国登月造假"])
-                sample_data.append(random.choice(data[topic]))
-        post = [{"userID": userID,"postID": str(i), "content": sample_data[i]} for i in range(num)]
-        return post
+        # num = int(request.query_params.get("num"))
+        pageNo = int(request.query_params.get("pageNo"))
+        pageSize = int(request.query_params.get("pageSize"))
+        maxnum = 50 # 数据库中对话数据的最大条数
+        maxpageNo = maxnum // pageSize # 最大页数
+        if pageNo > maxpageNo:
+            return JSONResponse(content={"state":False, "error": "pageNo out of range"}, status_code=400)
+        else:
+            currentdir = os.path.dirname(os.path.abspath(__file__))
+            json_path = os.path.join(currentdir, 'PublicPost.json')
+            with open(json_path,'r') as f:
+                data = json.load(f)
+                sample_data = []
+                for _ in range(pageSize):
+                    topic = random.choice(["AI预言","巴西总统选举舞弊","新冠疫苗引发不孕","美国登月造假"])
+                    sample_data.append(random.choice(data[topic]))
+            post = [{"userID": userID,"postID": str((pageNo-1)*pageSize+i+1), "content": sample_data[i]} for i in range(pageSize)]
+            return post
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
     
