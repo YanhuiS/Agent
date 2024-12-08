@@ -165,5 +165,14 @@ async def get_geographical_attitudes_change(event_id: int, algorithm_id: int, co
     if country_column not in geo_data.columns or attitude_column not in geo_data.columns:
         raise HTTPException(status_code=404, detail="Required columns not found in the data")
     
+    # # 构建结果字典元组
+    # result_list = []
+    # for i in range(len(geo_data)):
+    #     province = geo_data[country_column][i]
+    #     attitude_value = geo_data[attitude_column][i]
+    #     result_list.append({country_column: province, attitude_column: attitude_value})
+    
+    # return tuple(result_list)
+    
     
     
