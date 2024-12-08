@@ -276,8 +276,8 @@ def cal_convert_rate(df, deltatime, end_time, start_time):
 def cal_grow_rate(df, deltatime, end_time, start_time):
     return cal_ring_growth(df, deltatime, end_time, start_time)
 
-@app.get("/Statistics/{observe_time}") 
-async def read_Statistics(observe_time: str):
+@app.get("/Statistics") 
+async def read_Statistics(request: Request):
     """
     Retrieve the Statistics of the posts in the observed time set by user.
 
@@ -308,6 +308,7 @@ async def read_Statistics(observe_time: str):
     dt_list = [datetime.strptime(date, format_str) for date in date_list]
     df['createdAt'] = dt_list
     end_time = df['createdAt'].max()
+    observe_time = request.query_params.get("observe_time")
     if observe_time == "day": deltatime = 1
     elif observe_time == "week": deltatime = 6
     else: deltatime = 29
@@ -328,8 +329,8 @@ async def read_Statistics(observe_time: str):
     }
     return result
 
-@app.get("/NewMessage/{num}")
-async def read_NewMessage(num: int):
+@app.get("/NewMessage")
+async def read_NewMessage(request: Request):
     """
     Retrieve the latest posts.
 
@@ -348,14 +349,15 @@ async def read_NewMessage(num: int):
     # sorted_df = pd.DataFrame(data_time_order)
     # print(f"总共有帖子数：{len(sorted_df)}")
     # sorted_df.to_csv("format_TimeOrder.csv", index=False)
+    num = int(request.query_params.get("num"))
     read_message = data_time_order[:num]
     for i in range(num):
        message_dict = {"orderID": str(i),"content":read_message[i]["text"], "att":read_message[i]["atti"], "time":read_message[i]["createdAt"],"source":"Twitter"}
        result.append(message_dict)
     return result
 
-@app.get("/HotMessage/{num}")
-async def read_HotMessage(num: int):
+@app.get("/HotMessage")
+async def read_HotMessage(request: Request):
     """
     Retrieve the most popular posts
     
@@ -368,6 +370,7 @@ async def read_HotMessage(num: int):
     # 将每一行数据转换为一个字典, 所有字典组成列表
     data_list = data.to_dict(orient="records")
     data_hot_order = sorted(data_list, key = lambda x: x["replycount"] + x["retweetcount"] + x["favoritecount"], reverse = True)
+    num = int(request.query_params.get("num"))
     read_message = data_hot_order[:num]
     hot_list = [x["replycount"] + x["retweetcount"] + x["favoritecount"] for x in read_message]
     hot_list = [x / max(hot_list) for x in hot_list]
@@ -376,8 +379,8 @@ async def read_HotMessage(num: int):
        result.append(message_dict)
     return result
 
-@app.get("/RetrieveUser/{username}") # 推特数据
-async def read_RetrieveUser(username: str):
+@app.get("/RetrieveUser") 
+async def read_RetrieveUser(request: Request): 
     """
     Retrieve a user's id, and it's neighbours'id
 
@@ -387,6 +390,7 @@ async def read_RetrieveUser(username: str):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
     df = pd.read_csv(csv_path)
+    username = request.query_params.get("username")
     # 获取用户名对应id
     try:
         id = df.loc[(df["name"]) == username, "id"]
@@ -402,8 +406,8 @@ async def read_RetrieveUser(username: str):
     except Exception:
         return {"state": "No such user"}
     
-@app.get("/UserTopology/{userID}") # 推特数据
-async def read_UserTopology(userID: str):
+@app.get("/UserTopology") # 推特数据
+async def read_UserTopology(request: Request):
     """
     Retrieve a topology of a user, namely its neighbours and neighbours' neighbours
 
@@ -413,6 +417,7 @@ async def read_UserTopology(userID: str):
         -"layer1": the id of the neighbour
         -"layer2": the id of the neighbour's neighbour
     """
+    userID = request.query_params.get("userID")
     result = {"userID": userID}
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # 读取 JSON 数据，并将其转换为 Python 的字典处理
@@ -456,8 +461,8 @@ async def read_Userlist():
     result = [{"userID":ids[i], "name":names[i], "fansNum": FansNums[i]} for i in range(len(ids))]
     return result
 
-@app.get("/UserInfo/{userID}") # 生成数据
-async def read_UserInfo(userID: str):
+@app.get("/UserInfo") # 生成数据
+async def read_UserInfo(request:Request):
     """
     Retreive a user info
 
@@ -468,6 +473,7 @@ async def read_UserInfo(userID: str):
     csv_path = os.path.join(current_dir, "UserLoad_1000.csv")
     df = pd.read_csv(csv_path)
     # 获取该用户的各个信息
+    userID = request.query_params.get("userID")
     info = df.iloc[int(userID)].to_dict()
     info['id'] = userID 
     return info
@@ -501,8 +507,8 @@ async def read_UserProfileSave(request: Request):
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
 
-@app.get("/PrivateChat/{userID}/{num}") # 生成数据
-async def read_PrivateChat(userID: str, num: int):
+@app.get("/PrivateChat") # 生成数据
+async def read_PrivateChat(request: Request):
     """"
     Retrieve private chat of a user
 
@@ -511,6 +517,8 @@ async def read_PrivateChat(userID: str, num: int):
     
     """
     try:
+        userID = request.query_params.get("userID")
+        num = int(request.query_params.get("num"))
         currentdir = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(currentdir, 'PrivateChat.json')
         with open(json_path,'r') as f:
@@ -521,8 +529,8 @@ async def read_PrivateChat(userID: str, num: int):
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
     
-@app.get("/PublicPost/{userID}/{num}") # 生成数据
-async def read_PublicPost(userID: str, num: int):
+@app.get("/PublicPost") # 生成数据
+async def read_PublicPost(request: Request):
     """
     Retrieve public post a user
 
@@ -531,6 +539,8 @@ async def read_PublicPost(userID: str, num: int):
     
     """
     try:
+        userID = request.query_params.get("userID")
+        num = int(request.query_params.get("num"))
         currentdir = os.path.dirname(os.path.abspath(__file__))
         json_path = os.path.join(currentdir, 'PublicPost.json')
         with open(json_path,'r') as f:
