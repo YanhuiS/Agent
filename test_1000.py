@@ -1,23 +1,16 @@
-from fastapi import FastAPI, Request,HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 import json
 import networkx as nx
 import os
 import pandas as pd
-from leader_load import read_list
-from datetime import datetime, timedelta
+from datetime import datetime
 from fastapi.responses import JSONResponse
 import numpy as np
-from leader_influence_read import read_influence
 import random
-import re
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-from set import First_Name, Last_Name, Status, Trait, Interest
-from collections import Counter,defaultdict
 import math
 app = FastAPI()
-network = nx.DiGraph()
+network = nx.DiGraph() 
 # network = nx.DiGraph()
 # network.remove_nodes_from(network.nodes)
 att = []
@@ -34,30 +27,19 @@ names = []
 uids = []
 current_item = None
 network_names = []
-# 允许具体的源
-origins = [
-    "http://localhost:8080",  # 允许的源
-]
+@app.get("/")
+async def read_root():
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,  # 指定允许的源
-    allow_credentials=True,  # 允许携带凭据
-    allow_methods=["*"],     # 允许的HTTP方法
-    allow_headers=["*"],     # 允许的HTTP头
-)
+    return {"message": "Welcome to FastAPI"}
 
 @app.get("/NetworkInit/{json_data}")
 async def NetworkInit(json_data: str):
-    """
-    对网络初始化，读取 follower_1w.json 文件并构建网络，构建成功返回success
-    success后，调用/NetworkShow接口，展示网络信息
-    """
     data  = eval(json_data)
+    print(data)
     global network, att, likes, retweets, comments, views, colors, roles, names, genders, ages, uids, collects
     try:
         # 读取 follower_1000.json 文件并构建网络
-        with open('./follower_1000.json', 'r', encoding='utf-8') as file:
+        with open('follower_1000.json', 'r', encoding='utf-8') as file:
             following_info = json.load(file)
         
         # 清空当前的网络图并添加节点和边
@@ -66,7 +48,7 @@ async def NetworkInit(json_data: str):
         network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
 
         # 读取 profiles_1000.csv 文件并提取数据
-        profile_path = './profiles_1000.csv'
+        profile_path = 'profile_1000.csv'
         if os.path.exists(profile_path):
             df = pd.read_csv(profile_path, dtype={14: str})
             profiles = df.to_dict(orient='list')
@@ -114,7 +96,7 @@ async def NetworkInit(json_data: str):
 @app.get("/NetworkShow/{NetworkName}")
 async def NetworkShow(NetworkName: str):
     """
-    返回网络数据，包括节点属性、边、度数等。
+    返回网络数据
     
     """
     global network, att, likes, retweets, comments, views, colors, roles, names, genders, ages, uids,collects
@@ -149,61 +131,36 @@ async def NetworkShow(NetworkName: str):
     except Exception as e:
         return {"status": "error", "message": str(e)}
         
-class Item(BaseModel):
-    TF_like: bool
-    TF_retweet: bool
-    TF_comment: bool
-    TF_view: bool
-    TF_collect: bool
-    TF_degree: bool
-    TF_att: bool
-    TF_pcomment: bool
-    TF_sample:bool
-    TF_leader: bool
-    TF_media: bool
-    cnt_dc: float
-    cnt_eg: float
-    cnt_t: float
-    cnt_l: float
-    cnt_sc: float
-    cnt_sd: float
-    cnt_ai: float
-    cnt_ep: float
-    cnt_bm: float
-    cnt_c: float
-    operation: str
-    edges: str
-@app.post("/NetworkManage/")
-def NetworkManage(item: Item):
+
+@app.get("/NetworkManage/{TF_like}/{TF_retweet}/{TF_comment}/{TF_view}/{TF_collect}/{TF_degree}/{TF_att}/{TF_pcomment}/{TF_sample}/{TF_leader}/{TF_media}/{cnt_dc}/{cnt_eg}/{cnt_t}/{cnt_l}/{cnt_sc}/{cnt_sd}/{cnt_ai}/{cnt_ep}/{cnt_bm}/{cnt_c}/{operation}/{edges}")
+def NetworkManage(TF_like: bool, TF_retweet: bool, TF_comment: bool, TF_view: bool, TF_collect: bool,TF_degree: bool, TF_att: bool, TF_pcomment: bool, TF_sample:bool, TF_leader: bool,TF_media: bool,cnt_dc: float, cnt_eg: float, cnt_t: float, cnt_l: float, cnt_sc: float, cnt_sd: float, cnt_ai: float, cnt_ep: float, cnt_bm: float, cnt_c: float, operation: str, edges: str):
     """
     生成网络图数据
     TF_like: bool, TF_retweet: bool, TF_comment: bool, TF_view: bool, TF_collect: bool, 
-    TF_degree: bool, TF_att: bool, TF_pcomment: bool（用户过滤条件，当参数为True时，即过滤网络，条件可叠加）
-    TF_sample:bool, TF_leader: bool,TF_media: bool （对用户数量，意见领袖和新闻媒体进行调整）
+    TF_degree: bool, TF_att: bool, TF_pcomment: bool, TF_sample:bool, TF_leader: bool,
+    TF_media: bool 对应用户过滤的条件
     
     cnt_dc: float, cnt_eg: float, cnt_t: float, cnt_l: float, cnt_sc: float, cnt_sd: float, 
-    cnt_ai: float, cnt_ep: float, cnt_bm: float, cnt_c: float （展示不同用户群体的占比，可以对其占比进行调整，
-    通过条形图直观显示各用户群体的比例，给定十个用户类型浮点数值相加为1）
+    cnt_ai: float, cnt_ep: float, cnt_bm: float, cnt_c: float 对应需要操作的用户类型
     
-    operation: str, edges: str （  - 给定operation是add/delete，edges 给定 例如1_2，
-    即添加user1 和user 2的连接，也可多连接，格式为1_2,3_4）
+    operation: str, edges: str  对边的删改进行操作
     
     """
-    edge_list = item.edges.split(',')  # 将边字符串拆分成列表
-    print(f"Edges to {item.operation}: {edge_list}")  # 输出边列表
-    params = [item.cnt_dc, item.cnt_eg, item.cnt_t, item.cnt_l, item.cnt_sc, item.cnt_sd, item.cnt_ai, item.cnt_ep, item.cnt_bm, item.cnt_c]
+    edge_list = edges.split(',')  # 将边字符串拆分成列表
+    print(f"Edges to {operation}: {edge_list}")  # 输出边列表
+    params = [cnt_dc, cnt_eg, cnt_t, cnt_l, cnt_sc, cnt_sd, cnt_ai, cnt_ep, cnt_bm, cnt_c]
     params_sum = sum(params)
     params_normalized = [p / params_sum for p in params]
-    profile_path = 'profile_1w.csv'
+    profile_path = 'profile_1000.csv'
     if os.path.exists(profile_path):
         df = pd.read_csv(profile_path)
     else:
         raise FileNotFoundError("profiles_random_data.csv 文件不存在！")
-    with open('follower_1w.json', 'r', encoding='utf-8') as file:
+    with open('follower_1000.json', 'r', encoding='utf-8') as file:
                 following_info = json.load(file)
     global network, att, likes, retweets, comments, views, colors, roles, names, genders, ages, uids, collects,current_item
     att, likes, retweets, comments, views, collects, colors, roles, names, genders, ages, uids = [], [], [], [], [], [], [], [], [], [], [], []
-    if item.TF_like:
+    if TF_like:
         try:
             df = df[df["likes"] >= 500]
             print(df.shape[0])
@@ -219,6 +176,7 @@ def NetworkManage(item: Item):
             genders = list(df['genders'])
             ages = list(df['ages'])
             uids = list(df['uids'])
+            network.clear()
             network = nx.DiGraph()
             network.add_nodes_from([a for a in following_info.keys()])
             network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
@@ -246,7 +204,7 @@ def NetworkManage(item: Item):
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
 
-    if item.TF_retweet:
+    if TF_retweet:
         try:
             df = df[df["retweets"] >= 50]
             print(df.shape[0])
@@ -289,7 +247,7 @@ def NetworkManage(item: Item):
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
     
-    if item.TF_comment:
+    if TF_comment:
         try:
             df = df[df["comments"] >= 100]
             print(df.shape[0])
@@ -331,7 +289,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_view:
+    if TF_view:
         try:
             df = df[df["views"] >= 5000]
             print(df.shape[0])
@@ -373,7 +331,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_collect:
+    if TF_collect:
         try:
             df = df[df["collects"] >= 50]
             print(df.shape[0])
@@ -415,7 +373,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_degree:
+    if TF_degree:
         try:
             network = nx.DiGraph()
             network.add_nodes_from([a for a in following_info.keys()])
@@ -460,7 +418,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_att:
+    if TF_att:
         try:
             df["init_att"] = df["init_att"].abs()
             df = df[df["init_att"] >= 0.1]
@@ -503,7 +461,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_pcomment:
+    if TF_pcomment:
         try:
             df["init_att"] = df["init_att"].abs()
             df["init_att"] = df["init_att"]* 100
@@ -547,7 +505,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_sample:
+    if TF_sample:
         try:
             df = df.sample(n=int(df.shape[0] * 0.5), random_state=42)
             print(df.shape[0])
@@ -589,7 +547,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_leader:
+    if TF_leader:
         try:
             leaders = df[df["roles"] == "Opinion leaders"].head(20)
             df.loc[df["roles"] == "Opinion leaders", "roles"] = 0
@@ -635,7 +593,7 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if item.TF_media:
+    if TF_media:
         try:
             media = df[df["roles"] == "News media"].head(20)
             df.loc[df["roles"] == "News media", "roles"] = 0
@@ -681,35 +639,34 @@ def NetworkManage(item: Item):
             # 捕获异常并返回错误信息
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
-    if sum(params_normalized) == 1:                                                    
+    if sum(params_normalized) == 1:                                                 
         try:
             print(df.shape[0])
             prof_color_mapping = {
-                "Arts": "red",
-                "Business": "blue",
-                "Communications": "green",
-                "Education": "yellow",
-                "Healthcare": "purple",
-                "Hospitality": "orange",
-                "Information Technology": "cyan",
-                "Law Enforcement": "magenta",
-                "Sales and Marketing": "pink",
-                "Science": "brown",
-                "Transportation": "grey"
+                "Doctor": "Red",
+                "Scientist": "Blue",
+                "Lawyer": "Green",
+                "Teacher": "Yellow",
+                "Consultant": "Gold",
+                "Entrepreneur": "Black",
+                "Software Developer": "Indigo",
+                "Artificial Intelligence Specialistt": "Violet",
+                "Engineer": "Orange",
+                "Business Manager": "Brown"
             }
             prof_distribution = {
-                "Arts": int(df.shape[0] * params_normalized[0]),
-                "Business": int(df.shape[0] * params_normalized[1]),
-                "Communications": int(df.shape[0] * params_normalized[2]),
-                "Education": int(df.shape[0] * params_normalized[3]),
-                "Healthcare": int(df.shape[0] * params_normalized[4]),
-                "Hospitality": int(df.shape[0] * params_normalized[5]),
-                "Information Technology": int(df.shape[0] * params_normalized[6]),
-                "Law Enforcement": int(df.shape[0] * params_normalized[7]),
-                "Sales and Marketing": int(df.shape[0] * params_normalized[8]),
-                "Science": int(df.shape[0] * params_normalized[9]),
-                "Transportation": int(df.shape[0] * params_normalized[10])
+                "Doctor": int(df.shape[0] * params_normalized[0]),
+                "Scientist": int(df.shape[0] * params_normalized[1]),
+                "Lawyer": int(df.shape[0] * params_normalized[2]),
+                "Teacher": int(df.shape[0] * params_normalized[3]),
+                "Consultant": int(df.shape[0] * params_normalized[4]),
+                "Entrepreneur": int(df.shape[0] * params_normalized[5]),
+                "Software Developer": int(df.shape[0] * params_normalized[6]),
+                "Artificial Intelligence Specialistt": int(df.shape[0] * params_normalized[7]),
+                "Engineer": int(df.shape[0] * params_normalized[8]),
+                "Business Manager": int(df.shape[0] * params_normalized[9])
             }
+            print(f"111Professions distribution: {prof_distribution}")
             assigned_sum = sum(prof_distribution.values())
             if assigned_sum != df.shape[0]:
                 diff = df.shape[0] - assigned_sum
@@ -719,13 +676,15 @@ def NetworkManage(item: Item):
                 elif diff < 0:
                     min_prof = min(prof_distribution, key=prof_distribution.get)
                     prof_distribution[min_prof] -= abs(diff)
-            print(f"Professions distribution: {prof_distribution}")
+            
+            print(f"222Professions distribution: {prof_distribution}")
             new_profs = []
             for prof, count in prof_distribution.items():
                 new_profs.extend([prof] * count)
             random.shuffle(new_profs)
             df['profs'] = new_profs
             df['colors'] = df['profs'].map(prof_color_mapping)
+            print(df.shape[0])
             att = list(df['init_att'])
             likes = list(df['likes'])
             retweets = list(df['retweets'])
@@ -741,6 +700,9 @@ def NetworkManage(item: Item):
             network = nx.DiGraph()
             network.add_nodes_from([a for a in following_info.keys()])
             network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
+            for i in following_info.keys():
+                if int(i[5:]) not in set(df.index):
+                    network.remove_node(i)
             network_data = {
                 "node_att": tuple(att),
                 "node_likes": tuple(likes),
@@ -761,7 +723,7 @@ def NetworkManage(item: Item):
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
         
-    if item.operation == "add":
+    if operation == "add":
         try:
             att = list(df['init_att'])
             likes = list(df['likes'])
@@ -801,7 +763,7 @@ def NetworkManage(item: Item):
             print("Error initializing network:", str(e))
             return {"status": "error", "message": str(e)}
         
-    if item.operation == "delete":
+    if operation == "delete":
         try:
             att = list(df['init_att'])
             likes = list(df['likes'])
@@ -877,6 +839,7 @@ def get_network_list():
     返回所有曾经输入过的网络名称列表
     """
     return {"status": "success", "network_names": network_names}
+
 class Event(BaseModel):
     Describe: str
     Algorithm: str
@@ -885,12 +848,6 @@ class Event(BaseModel):
     Number: str
 @app.post("/EventDelivery/")
 async def EventDelivery(event: Event):
-    """
-    EventDelivery
-    -事件投放，直接书写事件
-    -算法文件就是json文件
-    
-    """
     try:
         Describe = event.Describe
         Algorithm  = event.Algorithm
@@ -917,11 +874,6 @@ class Agent(BaseModel):
     breadth: str
 @app.post("/AgentManage/")
 async def AgentManage(agent: Agent):
-    """
-    AgentManage
-    -agent管理，直接书写agent
-    -算法文件就是json文件
-    """
     try:
         if agent.opertion == True:
             demo_data = agent.config
@@ -936,15 +888,9 @@ async def AgentManage(agent: Agent):
     except Exception as e:
         return {"status": "error", "message": str(e)}
     return demo_data
+
 @app.get("/Topic/{visibility}/{content}/{time}/{att}")
 async def EventDelivery(visibility:str, content:str, time:str, att:str):
-    """
-    EventDelivery
-    -visibility：可见性
-    -content：内容
-    -time：时间
-    -att：态度
-    """
     try:
         visibility = "男性"
         content = "意见分享"
@@ -959,3 +905,31 @@ async def EventDelivery(visibility:str, content:str, time:str, att:str):
     except Exception as e:
         return {"status": "error", "message": str(e)}
     return demo_data
+
+@app.get("/AgentList/{event_id}")
+async def agent_list( event_id: str):
+    """
+    获取agent列表
+
+    - event_id: event的id
+    - 返回agent列表，包含用户头像、昵称、ID、话题内容、粉丝数、点赞量、转发量
+    """
+    df = pd.read_excel('/root/autodl-tmp/syh/test_influence.xlsx')
+    
+    df = df.rename(columns={
+        'name': 'user_name',
+        'uid': 'user_id',
+        'content': 'topic_content',
+        'replycount': 'replycount',
+        'retweetcount': 'retweetcount',
+        'favoritecount': 'favoritecount',
+    })
+    
+    
+    # 选择需要的列
+    result_df = df[['user_name', 'user_id', 'topic_content', 'replycount', 'retweetcount', 'favoritecount','avatar']]
+    
+    # 将DataFrame转换为字典列表
+    result_list = result_df.to_dict('records')
+    
+    return tuple(result_list)
