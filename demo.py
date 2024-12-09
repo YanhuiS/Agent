@@ -710,7 +710,7 @@ async def NetworkInit(json_data: str):
     global network, att, likes, retweets, comments, views, colors, roles, names, genders, ages, uids, collects
     try:
         # 读取 follower_1000.json 文件并构建网络
-        with open('follower_1w.json', 'r', encoding='utf-8') as file:
+        with open('follower_1000.json', 'r', encoding='utf-8') as file:
             following_info = json.load(file)
         
         # 清空当前的网络图并添加节点和边
@@ -719,7 +719,7 @@ async def NetworkInit(json_data: str):
         network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
 
         # 读取 profiles_1000.csv 文件并提取数据
-        profile_path = 'profile_1w.csv'
+        profile_path = 'profile_1000.csv'
         if os.path.exists(profile_path):
             df = pd.read_csv(profile_path, dtype={14: str})
             profiles = df.to_dict(orient='list')
