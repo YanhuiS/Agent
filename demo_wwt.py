@@ -428,8 +428,8 @@ async def leader_compare(leader_id: str, time: str, event_id: str):
     return tuple(result1)
     
 
-@app.get("/LeaderEvent/{time}/{event_id}/{leader_id}")
-async def leader_event(time: str, event_id: str, leader_id: str):
+@app.get("/LeaderEvent/{time}/{event_id}/{leader_id}/{PageNo}/{PageSize}")
+async def leader_event(time: str, event_id: str, leader_id: str, PageNo: int, PageSize: int):
     """
     获取leader的相关推文
 
@@ -474,10 +474,20 @@ async def leader_event(time: str, event_id: str, leader_id: str):
     result_df = result_df.replace([np.inf, -np.inf], None)  # 将 inf 和 -inf 替换为 None
     result_df = result_df.fillna('')  # 将 NaN 替换为 None
 
-    # 将DataFrame转换为字典列表
-    result_list = result_df.to_dict('records')
+     # 分页逻辑
+    start_index = (PageNo - 1) * PageSize  # 起始索引
+    end_index = start_index + PageSize     # 结束索引
+
+    # 截取指定页的数据
+    paginated_df = result_df.iloc[start_index:end_index]
     
-    return tuple(result_list)
+
+    # 将DataFrame转换为字典列表
+    result_list = paginated_df.to_dict('records')
+    
+    # return tuple(result_list)
+    return {"page_no": PageNo, "page_size": PageSize, "data": result_list}
+
 
 @app.get("/LeaderEventCount/{time}/{event_id}/{leader_id}")
 async def leader_event_count(time: str, event_id: str, leader_id: str):
@@ -661,7 +671,7 @@ async def leader_social_net(time: str, event_id: str, leader_id: str):
 
     # 读取社交网络数据
     try:
-        with open('./follower_1w.json', 'r', encoding='utf-8') as file:
+        with open('./follower_1000.json', 'r', encoding='utf-8') as file:
             following_info = json.load(file)
         
         # 构建社交网络图

@@ -72,7 +72,7 @@ async def read_network_for_event(eventid: str, dt: str):
     network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
 
     # print("Edges", network.edges())
-    profile_path = './profiles_1000.csv'
+    profile_path = './8_10_mwb/profile/1000profile.csv'
     if os.path.exists(profile_path):
         df = pd.read_csv(profile_path)
         profiles = df.to_dict(orient='list')
@@ -90,8 +90,8 @@ async def read_network_for_event(eventid: str, dt: str):
 
 
 
-@app.get("/LeaderChoose/{eventdesc}")
-async def leader_choose(eventdesc: str):
+@app.get("/LeaderChoose/{event_id}")
+async def leader_choose(event_id: str):
     """
     获取leader信息
     - event_id: event的id
@@ -383,7 +383,7 @@ async def leader_impact_index(time: str, leader_id: str, event_id: str):
 async def leader_compare(leader_id: str, time: str, event_id: str):
     """
     获取leader的对比数据
-
+    -每次返回一个leader的数据，需要调用三次
     - time: 当前日期2024-11-25
     - event_id: event的id
     - leader_id: leader的id
@@ -668,7 +668,7 @@ async def leader_social_net(time: str, event_id: str, leader_id: str):
 
     # 读取社交网络数据
     try:
-        with open('./follower_1w.json', 'r', encoding='utf-8') as file:
+        with open('./follower_1000.json', 'r', encoding='utf-8') as file:
             following_info = json.load(file)
         
         # 构建社交网络图
@@ -710,7 +710,7 @@ async def NetworkInit(json_data: str):
     global network, att, likes, retweets, comments, views, colors, roles, names, genders, ages, uids, collects
     try:
         # 读取 follower_1000.json 文件并构建网络
-        with open('follower_1w.json', 'r', encoding='utf-8') as file:
+        with open('follower_1000.json', 'r', encoding='utf-8') as file:
             following_info = json.load(file)
         
         # 清空当前的网络图并添加节点和边
@@ -719,7 +719,7 @@ async def NetworkInit(json_data: str):
         network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
 
         # 读取 profiles_1000.csv 文件并提取数据
-        profile_path = 'profile_1w.csv'
+        profile_path = 'profile_1000.csv'
         if os.path.exists(profile_path):
             df = pd.read_csv(profile_path, dtype={14: str})
             profiles = df.to_dict(orient='list')
@@ -824,7 +824,6 @@ class Item(BaseModel):
     cnt_ep: float
     cnt_bm: float
     cnt_c: float
-    cnt_s: float
     operation: str
     edges: str
 @app.post("/NetworkManage/")
@@ -845,15 +844,15 @@ def NetworkManage(item: Item):
     """
     edge_list = item.edges.split(',')  # 将边字符串拆分成列表
     print(f"Edges to {item.operation}: {edge_list}")  # 输出边列表
-    params = [item.cnt_dc, item.cnt_eg, item.cnt_t, item.cnt_l, item.cnt_sc, item.cnt_sd, item.cnt_ai, item.cnt_ep, item.cnt_bm, item.cnt_c, item.cnt_s]
+    params = [item.cnt_dc, item.cnt_eg, item.cnt_t, item.cnt_l, item.cnt_sc, item.cnt_sd, item.cnt_ai, item.cnt_ep, item.cnt_bm, item.cnt_c]
     params_sum = sum(params)
     params_normalized = [p / params_sum for p in params]
-    profile_path = 'profile_1w.csv'
+    profile_path = 'profile_1000.csv'
     if os.path.exists(profile_path):
         df = pd.read_csv(profile_path)
     else:
         raise FileNotFoundError("profiles_random_data.csv 文件不存在！")
-    with open('follower_1w.json', 'r', encoding='utf-8') as file:
+    with open('follower_1000.json', 'r', encoding='utf-8') as file:
                 following_info = json.load(file)
     global network, att, likes, retweets, comments, views, colors, roles, names, genders, ages, uids, collects,current_item
     att, likes, retweets, comments, views, collects, colors, roles, names, genders, ages, uids = [], [], [], [], [], [], [], [], [], [], [], []
@@ -1339,30 +1338,28 @@ def NetworkManage(item: Item):
         try:
             print(df.shape[0])
             prof_color_mapping = {
-                "Arts": "red",
-                "Business": "blue",
-                "Communications": "green",
-                "Education": "yellow",
-                "Healthcare": "purple",
-                "Hospitality": "orange",
-                "Information Technology": "cyan",
-                "Law Enforcement": "magenta",
-                "Sales and Marketing": "pink",
-                "Science": "brown",
-                "Transportation": "grey"
+                "Doctor": "Red",
+                "Scientist": "Blue",
+                "Lawyer": "Green",
+                "Teacher": "Yellow",
+                "Consultant": "Gold",
+                "Entrepreneur": "Black",
+                "Software Developer": "Indigo",
+                "Artificial Intelligence Specialistt": "Violet",
+                "Engineer": "Orange",
+                "Business Manager": "Brown"
             }
             prof_distribution = {
-                "Arts": int(df.shape[0] * params_normalized[0]),
-                "Business": int(df.shape[0] * params_normalized[1]),
-                "Communications": int(df.shape[0] * params_normalized[2]),
-                "Education": int(df.shape[0] * params_normalized[3]),
-                "Healthcare": int(df.shape[0] * params_normalized[4]),
-                "Hospitality": int(df.shape[0] * params_normalized[5]),
-                "Information Technology": int(df.shape[0] * params_normalized[6]),
-                "Law Enforcement": int(df.shape[0] * params_normalized[7]),
-                "Sales and Marketing": int(df.shape[0] * params_normalized[8]),
-                "Science": int(df.shape[0] * params_normalized[9]),
-                "Transportation": int(df.shape[0] * params_normalized[10])
+                "Doctor": int(df.shape[0] * params_normalized[0]),
+                "Scientist": int(df.shape[0] * params_normalized[1]),
+                "Lawyer": int(df.shape[0] * params_normalized[2]),
+                "Teacher": int(df.shape[0] * params_normalized[3]),
+                "Consultant": int(df.shape[0] * params_normalized[4]),
+                "Entrepreneur": int(df.shape[0] * params_normalized[5]),
+                "Software Developer": int(df.shape[0] * params_normalized[6]),
+                "Artificial Intelligence Specialistt": int(df.shape[0] * params_normalized[7]),
+                "Engineer": int(df.shape[0] * params_normalized[8]),
+                "Business Manager": int(df.shape[0] * params_normalized[9])
             }
             assigned_sum = sum(prof_distribution.values())
             if assigned_sum != df.shape[0]:
@@ -1395,6 +1392,9 @@ def NetworkManage(item: Item):
             network = nx.DiGraph()
             network.add_nodes_from([a for a in following_info.keys()])
             network.add_edges_from([(a, b) for a in following_info.keys() for b in following_info[a]])
+            for i in following_info.keys():
+                if int(i[5:]) not in set(df.index):
+                    network.remove_node(i)
             network_data = {
                 "node_att": tuple(att),
                 "node_likes": tuple(likes),
@@ -2153,6 +2153,8 @@ async def read_UserProfileSave(request: Request):
     except Exception as e:
         return JSONResponse(content={"state":False, "error": str(e)}, status_code=400)
 
+
+
 @app.get("/PrivateChat") # 生成数据
 async def read_PrivateChat(request: Request):
     """"
@@ -2186,7 +2188,13 @@ async def read_PrivateChat(request: Request):
                 sample_data = []
                 for _ in range(pageSize):
                     topic = random.choice(topic_list)
-                    sample_data.append(random.choice(data[topic]))                    
+                    if topic == "通俄门":
+                        topic_en = 'Russia Interference'
+                    elif topic == "特朗普选举":
+                        topic_en = 'Trump Election'
+                    elif topic == "新疆棉事件":
+                        topic_en = 'Xinjiang Cotton'
+                    sample_data.append(random.choice(data[topic_en]))                    
                 chat = [{"userID": userID,"chatID": str((pageNo-1)*pageSize+i+1), "friendID": friendID, "content": sample_data[i]} for i in range(pageSize)]
                 return chat
     except Exception as e:
@@ -2219,7 +2227,13 @@ async def read_PublicPost(request: Request):
                 sample_data = []
                 for _ in range(pageSize):
                     topic = random.choice(topic_list)
-                    sample_data.append(random.choice(data[topic]))
+                    if topic == "通俄门":
+                        topic_en = 'Russia Interference'
+                    elif topic == "特朗普选举":
+                        topic_en = 'Trump Election'
+                    elif topic == "新疆棉事件":
+                        topic_en = 'Xinjiang Cotton'
+                    sample_data.append(random.choice(data[topic_en])) 
             post = [{"userID": userID,"postID": str((pageNo-1)*pageSize+i+1), "content": sample_data[i]} for i in range(pageSize)]
             return post
     except Exception as e:
@@ -2239,7 +2253,7 @@ async def UserAttributeStatistics(eventdesc: str):
     """
     try:
         # 读取CSV文件
-        result = pd.read_csv('./8_10_mwb/profile/10000profile.csv')
+        result = pd.read_csv('./8_10_mwb/profile/1000profile.csv')
         
         # 初始化结果字典
         statistics = {}
@@ -2281,7 +2295,6 @@ async def UserAttributeStatistics(eventdesc: str):
             statistics[economic] = {'positive': positive_count, 'negative': negative_count}
 
         # 统计社会角色
-        
         for status, categories in  Status.items():
             positive_count = len(result[(result['status'].isin(categories)) & (result['init_att'] > 0)])
             negative_count = len(result[(result['status'].isin(categories)) & (result['init_att'] <= 0)])
@@ -2340,7 +2353,7 @@ async def OpinionLeaderInfluence(eventdesc: str):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing data: {e}")
-    
+
 @app.get("/WordCloudAnalysis/{eventdesc}/{time_interval}")
 async def WordCloudAnalysis(eventdesc: str, time_interval: str):
     """
@@ -2391,19 +2404,66 @@ async def WordCloudAnalysis(eventdesc: str, time_interval: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing files: {e}")
 
+
+
 @app.get("/UserAttitudeDynamics/{eventdesc}/{time_scale}")
-async def UserAttitudeDynamics(eventdesc: str,time_scale:str):
+async def UserAttitudeDynamics(eventdesc: str, time_scale: str):
     """
     功能：统计用户支持中立反对态度随时间变化的动态数据
     输入参数：eventdesc: 事件描述，time_scale: 时间尺度
     返回值：一个列表，列表中每个元素是一个字典。time：2022-01-01，support：100，neutral：80，oppose：20；
     """
-    result = pd.read_excel('./8_10_mwb/attitude_data.xlsx')
+    try:
+        folder_path = './8_10_mwb/2024'
+        if not os.path.exists(folder_path):
+            raise HTTPException(status_code=404, detail="Folder not found")
+        
+        # 初始化结果字典
+        attitude_dynamics = {}
 
-    output = tuple(result.to_dict(orient='records'))
+        # 遍历文件夹内的所有文件
+        for filename in os.listdir(folder_path):
+            if filename.endswith('.json'):
+                file_path = os.path.join(folder_path, filename)
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        data_list = json.load(file)
+                except json.JSONDecodeError as e:
+                    raise HTTPException(status_code=400, detail=f"Error decoding JSON in file {file_path}: {e}")
+                
+                support_count = 0
+                neutral_count = 0
+                oppose_count = 0
+                
+                for data in data_list:
+                    # 检查是否有stance键
+                    if 'stance' not in data:
+                        raise HTTPException(status_code=400, detail=f"File {file_path} does not contain 'stance' key")
+                    
+                    # 统计stance列的值
+                    stance = data['stance']
+                    if stance == 'support':
+                        support_count += 1
+                    elif stance == 'neutral':
+                        neutral_count += 1
+                    elif stance == 'oppose':
+                        oppose_count += 1
+                
+                # 获取日期
+                date = filename.split('.')[0]
+                
+                # 存储结果
+                attitude_dynamics[date] = {
+                    'support': support_count,
+                    'neutral': neutral_count,
+                    'oppose': oppose_count
+                }
+        
+        return attitude_dynamics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing data: {e}")
 
-    return output
-
+    
 @app.get("/RealtimeData/{eventdesc}/{time}")
 async def RealtimeData(eventdesc: str, time: str):
     """
@@ -2411,35 +2471,80 @@ async def RealtimeData(eventdesc: str, time: str):
     输入参数：eventdesc: 事件描述，time: 时间
     返回值：字典，
     {
-  "时间": "2024-11-23T07:00:00",
-  "Speed ": 85,
-  "User Engagement": 40,
-  "Attitude ": "05:03:01",
-  "Information Cocoon Effect": 0.25,
-  "Network Aggregation": 0.45,
-  "Heat of the Subject": "Warm"
-   }
+        "时间": "2024-11-23",
+        "用户参与度": 0.85,
+        "态度占比": {"support": 0.5, "neutral": 0.3, "oppose": 0.2},
+        "话题热度": "hot",
+        "用户留存率": 0.75,
+        "每日新增用户": 100,
+        "信息茧房效应": 0.45
+    }
     """
-    Realtime_data = pd.read_excel('./8_10_mwb/Realtime_data.xlsx')
-    
-    # 将时间列转换为datetime格式
-    Realtime_data.iloc[:, 0] = pd.to_datetime(Realtime_data.iloc[:, 0])
-    
-    # 将输入的时间字符串转换为datetime格式
-    input_time = datetime.strptime(time, "%Y-%m-%d %H:%M")
-    
-    # 查找与输入时间匹配的行
-    matching_row = Realtime_data[Realtime_data.iloc[:, 0] == input_time]
-    
-    if matching_row.empty:
-        raise HTTPException(status_code=404, detail="Time not found in the data")
-    
-    # 将匹配的行转换为字典格式
-    result_dict = matching_row.to_dict(orient='records')[0]
-    
-    return result_dict
+    try:
+        # 将输入的时间字符串转换为datetime格式，只具体到天
+        input_time = datetime.strptime(time, "%Y-%m-%d")
+        date_str = input_time.strftime("%Y-%m-%d")
+        
+        # 读取时间名为该时间的文件
+        file_path = f'./8_10_mwb/2024/{date_str}.json'
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data_list = json.load(file)
+        
+        # 计算用户参与度
+        user_engagement = len(data_list) / 10000
+        
+        # 计算态度占比
+        stance_counts = {"support": 0, "neutral": 0, "oppose": 0}
+        for entry in data_list:
+            stance = entry.get("stance")
+            if stance in stance_counts:
+                stance_counts[stance] += 1
+        total_stances = sum(stance_counts.values())
+        attitude_ratio = {k: v / total_stances for k, v in stance_counts.items()}
+        
+        # 计算话题热度
+        total_comments = sum(entry.get("comments_count", 0) for entry in data_list)
+        topic_heat = "hot" if len(data_list) + total_comments > 100 else "cool"
+        
+        # 计算用户留存率和每日新增用户
+        previous_date_str = (input_time - timedelta(days=1)).strftime("%Y-%m-%d")
+        previous_file_path = f'./8_10_mwb/2024/{previous_date_str}.json'
+        if os.path.exists(previous_file_path):
+            with open(previous_file_path, 'r', encoding='utf-8') as file:
+                previous_data = json.load(file)
+            daily_new_users = len(previous_data) - len(data_list)
+            previous_ids = {entry["_id"] for entry in previous_data}
+            current_ids = {entry["_id"] for entry in data_list}
+            retained_users = len(previous_ids & current_ids)
+            user_retention_rate = retained_users / len(previous_ids) if previous_ids else 1
+        else:
+            user_retention_rate = 1
+            daily_new_users = len(data_list)
+        
+        # 生成信息茧房效应的随机值
+        filter_bubble_effect = random.uniform(0, 1)
+        
+        # 构建结果字典
+        result_dict = {
+            "时间": time,
+            "用户参与度": user_engagement,
+            "态度占比": attitude_ratio,
+            "话题热度": topic_heat,
+            "用户留存率": user_retention_rate,
+            "每日新增用户": daily_new_users,
+            "信息茧房效应": filter_bubble_effect
+        }
+        
+        return result_dict
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing data: {e}")
 
-@app.get("/GeographicalAttitudes/{eventdesc}/{country}/{time}")
+
+
+@app.get("/GeographicalAttitudes/{eventdesc}/{country}")
 async def GeographicalAttitudes(eventdesc: str, country: str):
     """
     功能：根据输入的事件描述、国家和时间，返回该国家各省态度数据
@@ -2488,6 +2593,9 @@ async def GeographicalAttitudes(eventdesc: str, country: str):
         return location_attitude
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing data: {e}")
+
+
+
 
 @app.get("/ForwardingTrends/{eventdesc}")
 async def ForwardingTrends(eventdesc: str):
@@ -2539,11 +2647,11 @@ async def ForwardingTrends(eventdesc: str):
     
     return output
 
-@app.get("/KeyUsers")
-async def KeyUsers(
-    eventdesc: str = Query(..., description="事件描述"),
-    ID: str = Query(..., description="用户ID")
-):
+
+
+
+@app.get("/KeyUsers/{eventdesc}/{ID}")
+async def KeyUsers(eventdesc: str,ID: str):
     """
     功能：根据输入的事件描述和ID，返回该ID的姓名，头像，粉丝，转发内容等信息
     输入：事件描述（eventdesc），ID（str）
@@ -2642,5 +2750,3 @@ async def CriticalUserPaths(eventdesc: str):
     }
     
     return result
-
-

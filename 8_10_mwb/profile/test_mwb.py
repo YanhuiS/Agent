@@ -77,8 +77,8 @@ async def UserAttributeStatistics(eventdesc: str):
         raise HTTPException(status_code=500, detail=f"Error processing data: {e}")
 
 
-@app.get("/OpinionLeaderInfluence")
-async def OpinionLeaderInfluence(eventdesc: str = Query(..., description="事件描述")):
+@app.get("/OpinionLeaderInfluence/{eventdesc}")
+async def OpinionLeaderInfluence(eventdesc: str):
     """
     功能：统计事件中的意见领袖对事件的影响力，伴随时间变化
     输入参数：eventdesc: 事件描述
@@ -369,8 +369,8 @@ async def GeographicalAttitudes(eventdesc: str, country: str):
 
 
 
-@app.get("/ForwardingTrends")
-async def ForwardingTrends(eventdesc: str = Query(..., description="事件描述")):
+@app.get("/ForwardingTrends/{eventdesc}")
+async def ForwardingTrends(eventdesc: str):
     """
     功能：统计事件不同时间的转发量
     输入：事件描述（eventdesc）
@@ -422,11 +422,8 @@ async def ForwardingTrends(eventdesc: str = Query(..., description="事件描述
 
 
 
-@app.get("/KeyUsers")
-async def KeyUsers(
-    eventdesc: str = Query(..., description="事件描述"),
-    ID: str = Query(..., description="用户ID")
-):
+@app.get("/KeyUsers/{eventdesc}/{ID}")
+async def KeyUsers(eventdesc: str,ID: str):
     """
     功能：根据输入的事件描述和ID，返回该ID的姓名，头像，粉丝，转发内容等信息
     输入：事件描述（eventdesc），ID（str）
@@ -470,8 +467,8 @@ async def KeyUsers(
 
 
 
-@app.get("/CriticalUserPaths")
-async def CriticalUserPaths(eventdesc: str = Query(..., description="事件描述")):
+@app.get("/CriticalUserPaths/{eventdesc}")
+async def CriticalUserPaths(eventdesc: str):
     """
     功能：根据输入的事件描述，返回该事件的相关关键用户传播路径
     输入：事件描述（eventdesc）
